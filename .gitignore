@@ -1,2 +1,4 @@
 .stack-work/
 *~
+/resources/*.cmp
+/resources/*.dcmp
