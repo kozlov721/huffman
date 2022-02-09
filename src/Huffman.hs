@@ -110,9 +110,7 @@ decodeTree = fst <.> go
   where
     go :: ([Char], BitString) -> Maybe (Tree, ([Char], BitString))
     go (d:ds, bs) = do
-
         (b, rest)     <- BS.uncons bs
-
         if b == 0
         then return (Leaf d, (ds, rest))
         else do
@@ -141,7 +139,7 @@ splitByteString = go BL.empty
 decode :: ByteString -> Maybe String
 decode bl = do
     (d, t) <- Bi.first (BLU.toString . BL.reverse) <$> splitByteString bl
-    let (l, t2) = Bi.first getSLen $ BL.splitAt 4 t
+    let (l, t2)   = Bi.first getSLen $ BL.splitAt 4 t
     let (s, text) = Bi.first BS.fromByteStringPadded $ BL.splitAt (l + 1) t2
     tree <- decodeTree . (d,) =<< s
     decodeText tree text
