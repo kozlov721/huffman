@@ -1,16 +1,17 @@
 module Huffman where
 
-import BitString (BitString)
-import Data.ByteString.Lazy (ByteString)
-import Data.List            (sortOn)
-import Data.Map             (Map)
-import Data.PQueue.Prio.Min (MinPQueue)
-import Data.Tuple           (swap)
-import Data.Word            (Word8)
+import BitString                 (BitString)
+import Control.Applicative.Tools ((<.>))
+import Data.ByteString.Lazy      (ByteString)
+import Data.List                 (sortOn)
+import Data.Map                  (Map)
+import Data.PQueue.Prio.Min      (MinPQueue)
+import Data.Tuple                (swap)
+import Data.Word                 (Word8)
 
-import qualified Data.Bifunctor       as BI
-import qualified Data.ByteString.Lazy as BL
 import qualified BitString            as BS
+import qualified Data.Bifunctor       as Bi
+import qualified Data.ByteString.Lazy as BL
 import qualified Data.Map             as M
 import qualified Data.PQueue.Prio.Min as Q
 
@@ -22,9 +23,11 @@ data CodeTree = Empty
 
 type CodeTable = Map Char [Word8]
 
+
+
 countLetters :: String -> MinPQueue Int CodeTree
 countLetters = Q.fromList
-    . map (BI.second Leaf . swap)
+    . map (Bi.second Leaf . swap)
     . M.assocs
     . foldl updateMap M.empty
   where
@@ -63,19 +66,15 @@ prepareForEncoding str = (tree, table)
 
 encodeText :: String -> CodeTable -> ByteString
 encodeText "" _ = BL.empty
-encodeText str table = (\(bs, p) -> p `BL.cons` BS.toByteString bs)
-    $ BS.padZeros
+encodeText str table = (\bs -> BS.toFullByte bs `BL.cons` BS.toByteString bs)
     $ foldr BS.cons BS.empty
     $ concatMap (table M.!) str
 
 
 decodeText :: CodeTree -> ByteString -> Maybe String
 decodeText Empty _ = Just ""
-decodeText tree rbl = go tree tree =<< bs
+decodeText tree rbl = go tree tree =<< BS.fromByteStringPadded rbl
   where
-    Just (padding, bl) = BL.uncons rbl
-    bs = uncurry BS.removePadding . BI.second BS.fromByteString <$> BL.uncons rbl
-
     go :: CodeTree -> CodeTree -> BitString -> Maybe String
     go orig (Leaf c) bs
         | BS.null bs = Just [c]
@@ -84,9 +83,34 @@ decodeText tree rbl = go tree tree =<< bs
         | BS.null bs = Just []
         | b == 0 = go orig l rest
         | otherwise = go orig r rest
-      where (b, rest) = BS.uncons bs
+      where (b, rest) = BS.unconsUnsafe bs
     go _ _ _ = Nothing
 
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+encodeTree :: CodeTree -> ([Char], BitString)
+encodeTree = Bi.second BS.fromBits . go
+  where
+    go :: CodeTree -> ([Char], [Word8])
+    go Empty = ([], [])
+    go (Leaf x) = ([x], [0])
+    go (Node l r) = (newDataL ++ newDataR, 1 : newStructureL ++ newStructureR)
+      where
+        (newDataL, newStructureL) = go l
+        (newDataR, newStructureR) = go r
+
+
+decodeTree :: ([Char], BitString) -> Maybe CodeTree
+decodeTree = fst <.> go
+  where
+    go :: ([Char], BitString) -> Maybe (CodeTree, ([Char], BitString))
+    go (d:ds, bs) = do
+
+        (b, rest)     <- BS.uncons bs
+        (left, remL)  <- go (d:ds, rest)
+        (right, remR) <- go remL
+
+        if   b == 0
+        then return (Leaf d, (ds, rest))
+        else return (Node left right, remR)
+    go _ = Nothing
+
