@@ -81,9 +81,11 @@ decodeText tree rbl = go tree tree =<< BS.fromByteStringPadded rbl
         | otherwise = (c:) <$> go orig orig bs
     go orig (Node l r) bs
         | BS.null bs = Just []
-        | b == 0 = go orig l rest
-        | otherwise = go orig r rest
-      where (b, rest) = BS.unconsUnsafe bs
+        | otherwise = do
+            (b, rest) <- BS.uncons bs
+            if   b == 0
+            then go orig l rest
+            else go orig r rest
     go _ _ _ = Nothing
 
 -- chars, '\0', len : 4 bytes, structure
