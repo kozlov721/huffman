@@ -1,11 +1,16 @@
-import Data.Word (Word8)
-import Data.Char (chr)
-import Test.HUnit
-import BitString (BitString)
+import BitString      (BitString)
+import System.Directory (listDirectory)
+import Control.Monad  (void)
+import Data.Char      (chr)
+import Data.Maybe     (isJust)
+import Data.Word      (Word8)
 import Huffman
-import Control.Monad (void)
+import System.Exit
+import System.Process (readProcessWithExitCode)
+import Test.HUnit
+
+import qualified BitString            as BS
 import qualified Data.ByteString.Lazy as BL
-import qualified BitString as BS
 
 
 tests = test $
@@ -14,13 +19,17 @@ tests = test $
     ]
     ++ concat
     [ [ "encode-decode-simple" ~: str ~: Just str ~=? encodeDecode str
-      , "encode-decode-all"    ~: str ~: Just str ~=? (decodeAll . encodeAll) str
+      , "encode-decode-all"    ~: str ~: Just str ~=? (decode . encode) str
       ]
     | str <- [ "hello"
              , "world"
              , "a little longer string"
              , "non ǎščí 字母"
              , [chr x | x <- [1..127]]]
+    ]
+    ++
+    [ "comp-decomp-file" ~: path ~: encodeDecodeFile path
+    | path <- map ("./resources/"++) ["small.txt", "medium.txt"]
     ]
 
 bitsCycle :: [Word8] -> [Word8]
@@ -46,5 +55,10 @@ encodeDecode str = decodeText tree
   where
     (tree, table) = prepareForEncoding str
 
+encodeDecodeFile :: FilePath -> IO Bool
+encodeDecodeFile path = isJust . encodeDecode
+    <$> readFile path
+
 main :: IO ()
-main = void $ runTestTT tests
+main =  void $ runTestTT tests
+
