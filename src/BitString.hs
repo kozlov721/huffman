@@ -1,59 +1,74 @@
-{-# LANGUAGE TupleSections #-}
+
 module BitString where
 
 
 import Data.ByteString.Lazy (ByteString)
 import Data.Maybe           (fromJust)
 import Data.Word            (Word8)
+import Control.Applicative.Tools ((<.>))
+import Data.Bits            ((.&.))
 
-import qualified Data.Bifunctor       as BI
+import qualified Data.Bifunctor       as Bi
 import qualified Data.ByteString.Lazy as BL
 
 
 type Bit = Word8
 type Byte = Word8
-type BitString = ((Byte, Word8), ByteString)
--- data BitString' = BitString Word8 Word8 ByteString
+data BitString = BitString Byte Word8 ByteString
+    deriving (Show)
 
-unconsSafe :: BitString -> Maybe (Bit, BitString)
-unconsSafe ((_, 0), bs) = unconsSafe . BI.first (,8) =<< BL.uncons bs
-unconsSafe ((b, n), bs) = Just (b `div` 2 ^ (n - 1) `mod` 2, ((b, n - 1), bs))
-
-uncons :: BitString -> (Bit, BitString)
-uncons bs = case unconsSafe bs of
-    Nothing -> error "uncons on empty BitString"
-    Just x  -> x
+uncons :: BitString -> Maybe (Bit, BitString)
+uncons (BitString _ 0 t) = BL.uncons t
+    >>= uncons . (\(h, t) -> BitString h 8 t)
+uncons (BitString h l t) = Just
+    (h `div` 2 ^ 7, BitString (h * 2) (l - 1) t)
 
 cons :: Bit -> BitString -> BitString
-cons b ((h, 8), bs) = ((b, 1), h `BL.cons` bs)
-cons b ((h, n), bs) = ((h + b * 2 ^ n, n + 1), bs)
+cons b (BitString h 8 t) = cons b $ BitString 0 0 $ h `BL.cons` t
+cons b (BitString h l t) = BitString (h `div` 2 + b * 2 ^ 7) (l + 1) t
 
-null :: BitString -> Bool
-null ((_, 0), x) = BL.null x
-null _           = False
+unconsUnsafe :: BitString -> (Bit, BitString)
+unconsUnsafe bs = case uncons bs of
+    Nothing -> error "uncons on empty bit string"
+    Just x  -> x
 
 empty :: BitString
-empty = ((0, 0), BL.empty)
+empty = BitString 0 0 BL.empty
+
+singleton :: Word8 -> BitString
+singleton = BitString 0 0 . BL.singleton
+
+null :: BitString -> Bool
+null (BitString _ 0 t) = BL.null t
+null _ = False
 
 fromByteString :: ByteString -> BitString
-fromByteString bStr
-    | BL.null bStr = ((0, 8), BL.empty)
-    | otherwise = ((BL.head bStr, 0), BL.tail bStr)
+fromByteString = BitString 0 0
+
+fromByteStringTrim :: Int -> ByteString -> BitString
+fromByteStringTrim n = dropN n . fromByteString
+
+fromByteStringPadded :: ByteString -> Maybe BitString
+fromByteStringPadded = uncurry fromByteStringTrim
+    <.> Bi.first fromIntegral
+    <.> BL.uncons
+
+fromBits :: [Word8] -> BitString
+fromBits = foldr cons empty
 
 toByteString :: BitString -> ByteString
-toByteString ((h, 8), bs) = h `BL.cons` bs
-toByteString bs           = toByteString $ 0 `cons` bs
+toByteString (BitString h 0 t) = t
+toByteString (BitString h 8 t) = h `BL.cons` t
+toByteString bs = toByteString $ 0 `cons` bs
 
-pad :: Bit -> Word8 -> BitString -> (BitString, Word8)
-pad _ n bs@((_, 8), _) = (bs, n)
-pad b n bs             = pad b (n + 1) (b `cons` bs)
+toByteStringPadded :: BitString -> ByteString
+toByteStringPadded bs = toFullByte bs `BL.cons` toByteString bs
 
-padZeros :: BitString -> (BitString, Word8)
-padZeros = pad 0 0
+toFullByte :: BitString -> Word8
+toFullByte (BitString _ l _) = 8 - l
 
-padOnes :: BitString -> (BitString, Word8)
-padOnes = pad 1 0
-
-removePadding :: Word8 -> BitString -> BitString
-removePadding 0 = id
-removePadding n = removePadding (n - 1) . snd . uncons
+dropN :: Int -> BitString -> BitString
+dropN 0 bs = bs
+dropN n bs
+    | BitString.null bs = bs
+    | otherwise = dropN (n - 1) $ snd $ unconsUnsafe bs
