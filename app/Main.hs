@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 module Main where
 
 import Huffman
@@ -36,10 +35,11 @@ compressFile :: FilePath -> FilePath -> IO ()
 compressFile i o = readFile i >>= BL.writeFile o . encode
 
 decompressFile :: FilePath -> FilePath -> IO ()
-decompressFile i o = BL.readFile i
-    >>= (\case Just str -> writeFile o str
-               Nothing  -> hPutStrLn stderr "something went wrong")
-    . decode
+decompressFile i o = do
+    dcmp <- decode <$> BL.readFile i
+    case dcmp of
+        Just str -> writeFile o str
+        Nothing  -> hPutStrLn stderr "something went wrong" >> exitFailure
 
 run :: Sample -> IO ()
 run (Sample decode out inPath)
@@ -48,11 +48,11 @@ run (Sample decode out inPath)
   where
     outPath
         | null out && decode =
-            if take 4 (reverse inPath) == reverse ".cmp"
-               then init
-                  $ reverse
-                  $ dropWhile (/='.')
-                  $ reverse inPath
+            if   take 4 (reverse inPath) == reverse ".cmp"
+            then init
+               $ reverse
+               $ dropWhile (/='.')
+               $ reverse inPath
             else inPath ++ ".uncmp"
         | null out && not decode = inPath ++ ".cmp"
         | otherwise = out
