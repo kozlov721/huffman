@@ -1,7 +1,7 @@
 name:                compression
 version:             0.1.0.0
 github:              "xkozlov1/compression"
-license:             BSD3
+license:             MIT
 author:              "Martin Kozlovský"
 maintainer:          "example@example.com"
 copyright:           "2022 Martin Kozlovský"
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/xkozlov1/compression#readme>
+description:         Please see the README on GitHub at <https://github.com/kozlovskym/hcompress#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -36,8 +36,7 @@ executables:
     source-dirs:         app
     ghc-options:
     - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+    - -O2
     dependencies:
     - compression
     - optparse-applicative
@@ -53,3 +52,5 @@ tests:
     dependencies:
     - compression
     - HUnit
+    - process
+    - directory

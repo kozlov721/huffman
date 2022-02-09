@@ -6,13 +6,13 @@ cabal-version: 1.12
 
 name:           compression
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/xkozlov1/compression#readme>
+description:    Please see the README on GitHub at <https://github.com/kozlovskym/hcompress#readme>
 homepage:       https://github.com/xkozlov1/compression#readme
 bug-reports:    https://github.com/xkozlov1/compression/issues
 author:         Martin Kozlovský
 maintainer:     example@example.com
 copyright:      2022 Martin Kozlovský
-license:        BSD3
+license:        MIT
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
@@ -46,7 +46,7 @@ executable compression-exe
       Paths_compression
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -O2
   build-depends:
       base >=4.7 && <5
     , bytestring
@@ -72,7 +72,9 @@ test-suite compression-test
     , bytestring
     , compression
     , containers
+    , directory
     , pqueue
+    , process
     , utf8-string
     , yjtools
   default-language: Haskell2010
