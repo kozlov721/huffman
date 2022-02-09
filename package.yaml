@@ -1,6 +1,6 @@
-name:                compression
+name:                hcompress
 version:             0.1.0.0
-github:              "xkozlov1/compression"
+github:              "kozlovskym/hcompress"
 license:             MIT
 author:              "Martin Kozlovský"
 maintainer:          "example@example.com"
@@ -31,18 +31,18 @@ library:
   source-dirs: src
 
 executables:
-  compression-exe:
+  hcompress-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
     - -threaded
     - -O2
     dependencies:
-    - compression
+    - hcompress
     - optparse-applicative
 
 tests:
-  compression-test:
+  hcompress-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -50,7 +50,7 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - compression
+    - hcompress
     - HUnit
     - process
     - directory
