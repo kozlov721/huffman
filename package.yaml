@@ -24,6 +24,7 @@ dependencies:
 - bytestring
 - containers
 - pqueue
+- yjtools
 
 library:
   source-dirs: src
