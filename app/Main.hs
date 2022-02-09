@@ -3,4 +3,4 @@ module Main where
 import Huffman
 
 main :: IO ()
-main = someFunc
+main = print "not implemented"
