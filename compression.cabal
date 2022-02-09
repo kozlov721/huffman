@@ -36,6 +36,7 @@ library
     , bytestring
     , containers
     , pqueue
+    , yjtools
   default-language: Haskell2010
 
 executable compression-exe
@@ -51,6 +52,7 @@ executable compression-exe
     , compression
     , containers
     , pqueue
+    , yjtools
   default-language: Haskell2010
 
 test-suite compression-test
@@ -68,4 +70,5 @@ test-suite compression-test
     , compression
     , containers
     , pqueue
+    , yjtools
   default-language: Haskell2010
