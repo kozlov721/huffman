@@ -148,3 +148,4 @@ getSLen :: ByteString -> Int64
 getSLen = foldr ( (\x y -> y * 256 + x)
                 . (\x -> fromIntegral x :: Int64)
                 ) 0 . BL.unpack
+

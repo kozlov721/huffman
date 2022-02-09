@@ -3,15 +3,15 @@ module Main where
 
 import Huffman
 import Options.Applicative
-import System.IO (hPutStrLn, stderr)
-import System.Exit (exitFailure)
+import System.Exit         (exitFailure)
+import System.IO           (hPutStrLn, stderr)
 
 import qualified Data.ByteString.Lazy as BL
 
 data Sample = Sample
     { decompress :: Bool
-    , output :: String
-    , input  :: String
+    , output     :: String
+    , input      :: String
     }
 
 sample :: Parser Sample

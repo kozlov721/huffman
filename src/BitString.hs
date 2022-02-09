@@ -1,12 +1,11 @@
-
 module BitString where
 
 
-import Data.ByteString.Lazy (ByteString)
-import Data.Maybe           (fromJust)
-import Data.Word            (Word8)
 import Control.Applicative.Tools ((<.>))
-import Data.Bits            ((.&.))
+import Data.Bits                 ((.&.))
+import Data.ByteString.Lazy      (ByteString)
+import Data.Maybe                (fromJust)
+import Data.Word                 (Word8)
 
 import qualified Data.Bifunctor       as Bi
 import qualified Data.ByteString.Lazy as BL
@@ -40,7 +39,7 @@ singleton = BitString 0 0 . BL.singleton
 
 null :: BitString -> Bool
 null (BitString _ 0 t) = BL.null t
-null _ = False
+null _                 = False
 
 fromByteString :: ByteString -> BitString
 fromByteString = BitString 0 0
@@ -59,7 +58,7 @@ fromBits = foldr cons empty
 toByteString :: BitString -> ByteString
 toByteString (BitString h 0 t) = t
 toByteString (BitString h 8 t) = h `BL.cons` t
-toByteString bs = toByteString $ 0 `cons` bs
+toByteString bs                = toByteString $ 0 `cons` bs
 
 toByteStringPadded :: BitString -> ByteString
 toByteStringPadded bs = toFullByte bs `BL.cons` toByteString bs
@@ -72,3 +71,4 @@ dropN 0 bs = bs
 dropN n bs
     | BitString.null bs = bs
     | otherwise = dropN (n - 1) $ snd $ unconsUnsafe bs
+
