@@ -1,7 +1,7 @@
 import BitString        (BitString)
 import Control.Monad    (void)
 import Data.Char        (chr)
-import Data.Maybe       (isJust)
+import Data.Maybe       (isJust, fromJust)
 import Data.Word        (Word8)
 import Huffman
 import System.Directory (listDirectory)
@@ -46,8 +46,8 @@ bitStringToBits = go
     go bs
         | BS.null bs = []
         | otherwise =
-            let (b, ns) = BS.unconsUnsafe bs
-            in b : bitStringToBits ns
+            let (b, ns) = fromJust $ BS.uncons bs
+            in  b : bitStringToBits ns
 
 encodeDecode :: String -> Maybe String
 encodeDecode str = decodeText tree
