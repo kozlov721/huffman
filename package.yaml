@@ -40,6 +40,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - compression
+    - optparse-applicative
 
 tests:
   compression-test:
@@ -51,4 +52,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - compression
-    - QuickCheck
+    - HUnit

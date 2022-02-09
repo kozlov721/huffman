@@ -52,6 +52,7 @@ executable compression-exe
     , bytestring
     , compression
     , containers
+    , optparse-applicative
     , pqueue
     , utf8-string
     , yjtools
@@ -66,7 +67,7 @@ test-suite compression-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      QuickCheck
+      HUnit
     , base >=4.7 && <5
     , bytestring
     , compression
