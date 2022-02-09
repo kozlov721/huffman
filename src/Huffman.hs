@@ -12,6 +12,7 @@ import Data.Word                 (Word8)
 import qualified BitString            as BS
 import qualified Data.Bifunctor       as Bi
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Lazy.UTF8 as BLU
 import qualified Data.Map             as M
 import qualified Data.PQueue.Prio.Min as Q
 
@@ -45,6 +46,11 @@ constructTree q
     ((rc, rt), q3) = Q.deleteFindMin q2
 
 
+countNodes :: CodeTree -> Int
+countNodes (Node l r) = 1 + countNodes l + countNodes r
+countNodes _ = 0
+
+
 treeToTable :: CodeTree -> CodeTable
 treeToTable (Leaf x) = M.singleton x [0]
 treeToTable tree = go [] tree
@@ -66,7 +72,7 @@ prepareForEncoding str = (tree, table)
 
 encodeText :: String -> CodeTable -> ByteString
 encodeText "" _ = BL.empty
-encodeText str table = (\bs -> BS.toFullByte bs `BL.cons` BS.toByteString bs)
+encodeText str table = BS.toByteStringPadded
     $ foldr BS.cons BS.empty
     $ concatMap (table M.!) str
 
@@ -86,10 +92,15 @@ decodeText tree rbl = go tree tree =<< BS.fromByteStringPadded rbl
       where (b, rest) = BS.unconsUnsafe bs
     go _ _ _ = Nothing
 
-
-encodeTree :: CodeTree -> ([Char], BitString)
-encodeTree = Bi.second BS.fromBits . go
+-- chars, '\0', len : 4 bytes, structure
+encodeTree :: CodeTree -> ByteString
+encodeTree tree = BL.append ch
+    $ BL.append (BL.singleton 0)
+    $ BL.append l s
   where
+    (ch, s) = Bi.bimap BLU.fromString (BS.toByteStringPadded . BS.fromBits) $ go tree
+    l = BL.pack [fromIntegral $ structLen `div` (256 ^ i) `mod` 256 | i <- [0..3]]
+    structLen = 2 * countNodes tree + 1 -- property of the coding algorithm
     go :: CodeTree -> ([Char], [Word8])
     go Empty = ([], [])
     go (Leaf x) = ([x], [0])
@@ -113,4 +124,13 @@ decodeTree = fst <.> go
         then return (Leaf d, (ds, rest))
         else return (Node left right, remR)
     go _ = Nothing
+
+
+encodeAll :: String -> ByteString
+encodeAll str = BL.empty
+  where
+    (tree, table) = prepareForEncoding str
+    enc = encodeText str
+    encTree = encodeTree tree
+
 
