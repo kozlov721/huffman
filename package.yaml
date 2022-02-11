@@ -1,6 +1,6 @@
-name:                hcompress
+name:                huffman
 version:             0.1.0.0
-github:              "kozlovskym/hcompress"
+github:              "kozlovskym/huffman"
 license:             MIT
 author:              "Martin Kozlovský"
 maintainer:          "example@example.com"
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/kozlovskym/hcompress#readme>
+description:         Please see the README on GitHub at <https://github.com/kozlovskym/huffman#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -31,18 +31,18 @@ library:
   source-dirs: src
 
 executables:
-  hcompress-exe:
+  huffman-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
     - -threaded
     - -O2
     dependencies:
-    - hcompress
+    - huffman
     - optparse-applicative
 
 tests:
-  hcompress-test:
+  huffman-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -50,7 +50,5 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - hcompress
+    - huffman
     - HUnit
-    - process
-    - directory
