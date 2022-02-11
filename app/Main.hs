@@ -4,6 +4,7 @@ import Huffman
 import Options.Applicative
 import System.Exit         (exitFailure)
 import System.IO           (hPutStrLn, stderr)
+import Data.List.Extra     (takeEnd, dropEnd)
 
 import qualified Data.ByteString.Lazy as BL
 
@@ -44,11 +45,8 @@ run (Sample decode out inPath)
   where
     outPath
         | null out && decode =
-            if   take 3 (reverse inPath) == reverse ".hf"
-            then init
-               $ reverse
-               $ dropWhile (/='.')
-               $ reverse inPath
+            if   takeEnd 3 out == ".hf"
+            then dropEnd 3 out
             else inPath ++ ".unhf"
         | null out && not decode = inPath ++ ".hf"
         | otherwise = out
