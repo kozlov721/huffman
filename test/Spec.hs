@@ -48,8 +48,8 @@ bitStringToBits = go
             in  b : bitStringToBits ns
 
 encodeDecode :: String -> Maybe String
-encodeDecode str = decodeText tree
-    $ encodeText table str
+encodeDecode str = decodeString tree
+    $ encodeString table str
   where
     (tree, table) = prepareForEncoding str
 
