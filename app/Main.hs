@@ -16,14 +16,14 @@ data Sample = Sample
 
 sample :: Parser Sample
 sample = Sample
-    <$> switch (  long "decompress"
-               <> short 'd'
-               <> help "Whether to decompress"
+    <$> switch (  short 'd'
+               <> help "Decode instead of encode"
                )
     <*> option str (  long "output"
                    <> short 'o'
                    <> value ""
-                   <> metavar "STRING"
+                   <> metavar "FILE"
+                   <> help "Name of the output file"
                    )
     <*> argument str (metavar "FILE")
 
