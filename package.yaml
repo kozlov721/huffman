@@ -1,9 +1,9 @@
 name:                huffman
 version:             0.1.0.0
-github:              "kozlovskym/huffman"
+github:              "kozlov721/huffman"
 license:             MIT
 author:              "Martin Kozlovský"
-maintainer:          "example@example.com"
+# maintainer:          "example@example.com"
 copyright:           "2022 Martin Kozlovský"
 
 extra-source-files:
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/kozlovskym/huffman#readme>
+description:         Please see the README on GitHub at <https://github.com/kozlov721/huffman#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -31,7 +31,7 @@ library:
   source-dirs: src
 
 executables:
-  huffman-exe:
+  huffman:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
