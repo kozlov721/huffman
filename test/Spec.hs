@@ -1,12 +1,10 @@
-import BitString        (BitString)
-import Control.Monad    (void)
-import Data.Char        (chr)
-import Data.Maybe       (isJust, fromJust)
-import Data.Word        (Word8)
+import BitString     (BitString)
+import Control.Monad (void)
+import Data.Char     (chr)
+import Data.Maybe    (fromJust, isJust)
+import Data.Word     (Word8)
 import Huffman
-import System.Directory (listDirectory)
 import System.Exit
-import System.Process   (readProcessWithExitCode)
 import Test.HUnit
 
 import qualified BitString            as BS
