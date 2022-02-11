@@ -1,8 +1,10 @@
 module BitString
     ( BitString
     , Bit
-    , uncons
     , cons
+    , consB
+    , uncons
+    , unconsB
     , BitString.null
     , empty
     , singleton
@@ -18,29 +20,40 @@ module BitString
     ) where
 
 
-import Data.ByteString.Lazy (ByteString)
-import Data.Maybe           (fromJust)
-import Data.Word            (Word8)
-import Data.Int             (Int64)
+import Control.Applicative.Tools ((<.>))
+import Data.ByteString.Lazy      (ByteString)
+import Data.Int                  (Int64)
+import Data.Maybe                (fromJust)
+import Data.Word                 (Word8)
 
 import qualified Data.Bifunctor       as Bi
 import qualified Data.ByteString.Lazy as BL
 
 
 -- | Alias for 'Word8'. /Be cautious to only use/
--- /@0@ and @1@ as values, otherwise the correctness is/
+-- /0 and 1 as values, otherwise the correctness is/
 -- /not guaranteed!/
 type Bit = Word8
 
 -- | Wrapper around lazy 'ByteString'
 -- which allows constructing the 'ByteString'
--- from bits instead of bytes. This can be a useful
+-- from single bits instead of bytes. This can be a useful
 -- abstraction when constructing binary data.
 data BitString = BitString
     Word8      -- ^ head
     Word8      -- ^ number of used bits in the head
     ByteString -- ^ tail
     deriving (Show)
+
+-- | /O(1)/ 'cons' is analogous to '(Prelude.:)' for lists.
+cons :: Bit -> BitString -> BitString
+cons b (BitString h 8 t) = cons b $ BitString 0 0 $ h `BL.cons` t
+cons b (BitString h l t) = BitString (h `div` 2 + b * 2 ^ 7) (l + 1) t
+
+-- | /O(1)/ Same as 'cons', but takes 'Bool' instead of 'Bit'. In general
+-- safer than 'cons' as it eliminates possible mistakes with invalid values.
+consB :: Bool -> BitString -> BitString
+consB b bs = fromIntegral (fromEnum b) `cons` bs
 
 -- | /O(1)/ Returns the head and tail of a 'BitString', or 'Nothing' if empty.
 uncons :: BitString -> Maybe (Bit, BitString)
@@ -50,12 +63,11 @@ uncons (BitString _ 0 t) = do
 uncons (BitString h l t) = Just
     (h `div` 2 ^ 7, BitString (h * 2) (l - 1) t)
 
--- | /O(1)/ 'cons' is analogous to '(Prelude.:)' for lists.
-cons :: Bit -> BitString -> BitString
-cons b (BitString h 8 t) = cons b $ BitString 0 0 $ h `BL.cons` t
-cons b (BitString h l t) = BitString (h `div` 2 + b * 2 ^ 7) (l + 1) t
+-- | Same as 'uncons', but returns 'Bool' instead of 'Bit'.
+unconsB :: BitString -> Maybe (Bool, BitString)
+unconsB = Bi.first (==1) <.> uncons
 
--- | /O(1)/ checks whether `BitString` is empty.
+-- | /O(1)/ checks whether 'BitString' is empty or not.
 null :: BitString -> Bool
 null (BitString _ 0 t) = BL.null t
 null _                 = False
@@ -64,9 +76,9 @@ null _                 = False
 empty :: BitString
 empty = BitString 0 0 BL.empty
 
--- | /O(1)/ converts one bit into a `BitString`.
+-- | /O(1)/ converts one bit into a 'BitString'.
 singleton :: Bit -> BitString
-singleton = BitString 0 0 . BL.singleton
+singleton = (`cons` empty)
 
 -- | /O(1)/ converts a lazy 'ByteString' into a 'BitString'.
 fromByteString :: ByteString -> BitString
