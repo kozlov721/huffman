@@ -1,5 +1,5 @@
-# Changelog for compression
+# Changelog for huffman
 
 ## 0.1.0.0  -- 2022-02-09
 
-* First working prototype supporting Huffman coding
+* First working prototype version
