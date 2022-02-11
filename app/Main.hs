@@ -24,11 +24,7 @@ sample = Sample
                    <> value ""
                    <> metavar "STRING"
                    )
-    <*> option str (  long "input"
-                   <> short 'i'
-                   <> value ""
-                   <> metavar "STRING"
-                   )
+    <*> argument str (metavar "FILE")
 
 
 compressFile :: FilePath -> FilePath -> IO ()
@@ -48,13 +44,13 @@ run (Sample decode out inPath)
   where
     outPath
         | null out && decode =
-            if   take 4 (reverse inPath) == reverse ".cmp"
+            if   take 3 (reverse inPath) == reverse ".hf"
             then init
                $ reverse
                $ dropWhile (/='.')
                $ reverse inPath
-            else inPath ++ ".uncmp"
-        | null out && not decode = inPath ++ ".cmp"
+            else inPath ++ ".unhf"
+        | null out && not decode = inPath ++ ".hf"
         | otherwise = out
 
 main :: IO ()
