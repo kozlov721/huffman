@@ -1,7 +1,7 @@
 # Huffman Code
 
 Simple program to compress and decompress text files using
-(Huffman coding)[https://en.wikipedia.org/wiki/Huffman_coding].
+[Huffman coding](https://en.wikipedia.org/wiki/Huffman_coding).
 
 ## Installation
 
