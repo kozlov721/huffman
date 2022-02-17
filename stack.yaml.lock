@@ -3,7 +3,46 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: directory-1.3.7.0@sha256:4d59f9714700e69d139084b47204fc91f13f31546aac39d666279996192b0d11,2940
+    pantry-tree:
+      size: 3433
+      sha256: 88b74942886e886b22ac1f3f0f65168563df4848766f372aaf014f712d3abb9a
+  original:
+    hackage: directory-1.3.7.0@sha256:4d59f9714700e69d139084b47204fc91f13f31546aac39d666279996192b0d11,2940
+- completed:
+    hackage: process-1.6.13.2@sha256:a6530a5698796e29d85817f74ca3ae20d2172fb9fa52b492c2e6816e1306bfe8,2963
+    pantry-tree:
+      size: 1543
+      sha256: 045d10d710f046aa69ab3dd3f425b9479820809d6c3ca1596e0b995bcf49ac7a
+  original:
+    hackage: process-1.6.13.2@sha256:a6530a5698796e29d85817f74ca3ae20d2172fb9fa52b492c2e6816e1306bfe8,2963
+- completed:
+    hackage: unix-2.7.2.2@sha256:15f5365c5995634e45de1772b9504761504a310184e676bc2ef60a14536dbef9,3496
+    pantry-tree:
+      size: 3536
+      sha256: 36434ced74d679622d61b69e8d92e1bd632d9ef3e284c63094653b2e473b0553
+  original:
+    hackage: unix-2.7.2.2@sha256:15f5365c5995634e45de1772b9504761504a310184e676bc2ef60a14536dbef9,3496
+- completed:
+    hackage: bytestring-0.11.2.0@sha256:f299f22fb266228a417c2ff6ac1244ad32b8098fbdd8ba25501decb550812226,7274
+    pantry-tree:
+      size: 3748
+      sha256: 96050e0d2405e16e43dffd9cd0187c4d2478f1dc51f78c591c6d6024ab1b7178
+  original:
+    hackage: bytestring-0.11.2.0@sha256:f299f22fb266228a417c2ff6ac1244ad32b8098fbdd8ba25501decb550812226,7274
+- completed:
+    name: bitstring
+    version: 0.1.0.0
+    git: https://github.com/kozlov721/bitstring.git
+    pantry-tree:
+      size: 578
+      sha256: 420c3e15548516d1870fb252a18687417d2c286f1ac40f352f5a4c69287396f3
+    commit: 5962450accee23fe3112639873e23f2d42d54377
+  original:
+    git: https://github.com/kozlov721/bitstring.git
+    commit: 5962450accee23fe3112639873e23f2d42d54377
 snapshots:
 - completed:
     size: 587819

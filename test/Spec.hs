@@ -1,21 +1,17 @@
-import BitString     (BitString)
-import Control.Monad (void)
-import Data.Char     (chr)
-import Data.Maybe    (fromJust, isJust)
-import Data.Word     (Word8)
+import Control.Monad  (void)
+import Data.BitString (BitString)
+import Data.Char      (chr)
+import Data.Maybe     (fromJust, isJust)
+import Data.Word      (Word8)
 import Huffman
 import System.Exit
 import Test.HUnit
 
-import qualified BitString            as BS
+import qualified Data.BitString       as BS
 import qualified Data.ByteString.Lazy as BL
 
 
-tests = test $
-    [ "cons-uncons" ~: show bits ~: bits ~=? bitsCycle bits
-    | bits <- [toBinary n | n <- [0..100]]
-    ]
-    ++ concat
+tests = test $ concat
     [ [ "encode-decode-simple" ~: str ~: Just str ~=? encodeDecode str
       , "encode-decode-all"    ~: str ~: Just str ~=? (decode . encode) str
       ]
@@ -23,11 +19,14 @@ tests = test $
              , "world"
              , "a little longer string"
              , "non ǎščí 字母"
-             , [chr x | x <- [1..127]]]
+             ]
     ]
     ++
     [ "comp-decomp-file" ~: path ~: encodeDecodeFile path
-    | path <- map ("./resources/"++) ["small.txt", "medium.txt"]
+    | path <- map ("./resources/"++) [ "small.txt"
+                                     , "medium.txt"
+                                     , "non-ascii.txt"
+                                     ]
     ]
 
 bitsCycle :: [Word8] -> [Word8]

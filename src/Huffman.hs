@@ -11,8 +11,8 @@ module Huffman
     )
       where
 
-import BitString                 (BitString)
 import Control.Applicative.Tools ((<.>))
+import Data.BitString            (BitString)
 import Data.ByteString.Lazy      (ByteString)
 import Data.Int                  (Int64)
 import Data.List                 (sortOn)
@@ -21,8 +21,8 @@ import Data.PQueue.Prio.Min      (MinPQueue)
 import Data.Tuple                (swap)
 import Data.Word                 (Word8)
 
-import qualified BitString                 as BS
 import qualified Data.Bifunctor            as Bi
+import qualified Data.BitString            as BS
 import qualified Data.ByteString.Lazy      as BL
 import qualified Data.ByteString.Lazy.UTF8 as BLU
 import qualified Data.Map                  as M
@@ -34,6 +34,12 @@ data Tree = Empty
               deriving Show
 
 type Table = Map Char [Word8]
+
+toByteStringPadded :: BitString -> ByteString
+toByteStringPadded = uncurry BL.cons . BS.toByteStringWithPadding
+
+fromByteStringPadded :: ByteString -> Maybe BitString
+fromByteStringPadded bl = uncurry BS.fromByteStringWithPadding <$> BL.uncons bl
 
 countLetters :: String -> MinPQueue Int Tree
 countLetters = Q.fromList
@@ -80,7 +86,7 @@ prepareForEncoding str = (tree, table)
 -- code table.
 encodeString :: Table -> String -> ByteString
 encodeString _ "" = BL.empty
-encodeString table str = BS.toByteStringPadded
+encodeString table str = toByteStringPadded
     $ foldr BS.cons BS.empty
     $ concatMap (table M.!) str
 
@@ -88,7 +94,7 @@ encodeString table str = BS.toByteStringPadded
 -- Huffman Tree.
 decodeString :: Tree -> ByteString -> Maybe String
 decodeString Empty _ = Just ""
-decodeString tree rbl = go tree tree =<< BS.fromByteStringPadded rbl
+decodeString tree rbl = go tree tree =<< fromByteStringPadded rbl
   where
     go :: Tree -> Tree -> BitString -> Maybe String
     go orig (Leaf c) bs
@@ -113,7 +119,7 @@ encodeTree tree = BL.append ch
     $ BL.append (BL.singleton 0)
     $ BL.append l s
   where
-    (ch, s) = Bi.bimap BLU.fromString (BS.toByteStringPadded . BS.fromBits)
+    (ch, s) = Bi.bimap BLU.fromString (toByteStringPadded . BS.pack)
         $ go tree
     l = BL.pack
         [fromIntegral $ structLen `div` (256 ^ i) `mod` 256 | i <- [0..3]]
@@ -168,7 +174,7 @@ decode :: ByteString -> Maybe String
 decode bl = do
     (d, t) <- Bi.first (BLU.toString . BL.reverse) <$> splitByteString bl
     let (l, t2)   = Bi.first getSLen $ BL.splitAt 4 t
-    let (s, text) = Bi.first BS.fromByteStringPadded $ BL.splitAt (l + 1) t2
+    let (s, text) = Bi.first fromByteStringPadded $ BL.splitAt (l + 1) t2
     tree <- decodeTree . (d,) =<< s
     decodeString tree text
 
