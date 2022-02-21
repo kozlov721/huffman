@@ -37,12 +37,12 @@ packages:
     version: 0.1.0.0
     git: https://github.com/kozlov721/bitstring.git
     pantry-tree:
-      size: 578
-      sha256: 420c3e15548516d1870fb252a18687417d2c286f1ac40f352f5a4c69287396f3
-    commit: 5962450accee23fe3112639873e23f2d42d54377
+      size: 910
+      sha256: 9ed65f93c4191d937f36eaef9b1841efbe46eacc5e1f277fd384275ca305ce93
+    commit: e15664288905db70d3df3678cc6d03e22a009262
   original:
     git: https://github.com/kozlov721/bitstring.git
-    commit: 5962450accee23fe3112639873e23f2d42d54377
+    commit: e15664288905db70d3df3678cc6d03e22a009262
 snapshots:
 - completed:
     size: 587819

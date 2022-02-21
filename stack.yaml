@@ -46,7 +46,7 @@ extra-deps:
   - unix-2.7.2.2@sha256:15f5365c5995634e45de1772b9504761504a310184e676bc2ef60a14536dbef9,3496
   - bytestring-0.11.2.0@sha256:f299f22fb266228a417c2ff6ac1244ad32b8098fbdd8ba25501decb550812226,7274
   - git: https://github.com/kozlov721/bitstring.git
-    commit: 5962450accee23fe3112639873e23f2d42d54377
+    commit: e15664288905db70d3df3678cc6d03e22a009262
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

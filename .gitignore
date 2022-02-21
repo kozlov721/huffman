@@ -2,3 +2,4 @@
 *~
 /resources/*.cmp
 /resources/*.dcmp
+stack.yaml.lock

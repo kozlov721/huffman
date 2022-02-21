@@ -25,12 +25,7 @@ dependencies:
 - utf8-string
 - containers
 - pqueue
-- yjtools
 - bitstring
-
-ghc-options:
-  - -O2
-  - -threaded
 
 library:
   source-dirs: src
@@ -39,6 +34,11 @@ executables:
   huffman:
     main:                Main.hs
     source-dirs:         app
+
+    ghc-options:
+      - -O2
+      - -threaded
+
     dependencies:
     - huffman
     - optparse-applicative
@@ -51,6 +51,7 @@ tests:
     ghc-options:
     - -rtsopts
     - -with-rtsopts=-N
+    - -threaded
     dependencies:
     - huffman
     - HUnit
