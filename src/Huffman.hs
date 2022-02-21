@@ -1,4 +1,5 @@
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 module Huffman
     ( encode
@@ -11,8 +12,7 @@ module Huffman
     )
       where
 
-import Control.Applicative.Tools ((<.>))
-import Data.BitString            (BitString)
+import Data.BitString            (BitString, pattern (:::))
 import Data.ByteString.Lazy      (ByteString)
 import Data.Int                  (Int64)
 import Data.List                 (sortOn)
@@ -35,11 +35,11 @@ data Tree = Empty
 
 type Table = Map Char [Word8]
 
-toByteStringPadded :: BitString -> ByteString
-toByteStringPadded = uncurry BL.cons . BS.toByteStringWithPadding
+toByteStringWithPadding :: BitString -> ByteString
+toByteStringWithPadding = uncurry BL.cons . BS.toByteStringPadded
 
-fromByteStringPadded :: ByteString -> Maybe BitString
-fromByteStringPadded bl = uncurry BS.fromByteStringWithPadding <$> BL.uncons bl
+fromByteStringWithPadding :: ByteString -> Maybe BitString
+fromByteStringWithPadding bl = uncurry BS.fromByteStringPadded <$> BL.uncons bl
 
 countLetters :: String -> MinPQueue Int Tree
 countLetters = Q.fromList
@@ -86,27 +86,22 @@ prepareForEncoding str = (tree, table)
 -- code table.
 encodeString :: Table -> String -> ByteString
 encodeString _ "" = BL.empty
-encodeString table str = toByteStringPadded
-    $ foldr BS.cons BS.empty
+encodeString table str = toByteStringWithPadding
+    $ BS.pack
     $ concatMap (table M.!) str
 
--- | \(\mathcal{O}(n)\) Decodes a 'String' usign precomputed
--- Huffman Tree.
+-- | \(\mathcal{O}(n)\) Decodes a 'String' using precomputed Huffman Tree.
 decodeString :: Tree -> ByteString -> Maybe String
 decodeString Empty _ = Just ""
-decodeString tree rbl = go tree tree =<< fromByteStringPadded rbl
+decodeString tree rbl = go tree tree =<< fromByteStringWithPadding rbl
   where
     go :: Tree -> Tree -> BitString -> Maybe String
-    go orig (Leaf c) bs
-        | BS.null bs = Just [c]
-        | otherwise = (c:) <$> go orig orig bs
-    go orig (Node l r) bs
-        | BS.null bs = Just []
-        | otherwise = do
-            (b, rest) <- BS.uncons bs
-            if   b == 0
-            then go orig l rest
-            else go orig r rest
+    go _ (Leaf c) BS.Empty = Just [c]
+    go _ _ BS.Empty = Just []
+    go orig (Leaf c) bs = (c:) <$> go orig orig bs
+    go orig (Node l r) (b:::bs)
+        | b == 0    = go orig l bs
+        | otherwise = go orig r bs
     go _ _ _ = Nothing
 
 -- | Encodes a Huffman Tree using [succinct encoding](https://en.wikipedia.org/wiki/Binary_tree#Succinct_encodings)
@@ -115,12 +110,9 @@ decodeString tree rbl = go tree tree =<< fromByteStringPadded rbl
 -- where length is the length is stored on 4 bytes and denotes on how many
 -- bytes is stored the structure of the tree.
 encodeTree :: Tree -> ByteString
-encodeTree tree = BL.append ch
-    $ BL.append (BL.singleton 0)
-    $ BL.append l s
+encodeTree tree = ch <> BL.singleton 0 <> l <> s
   where
-    (ch, s) = Bi.bimap BLU.fromString (toByteStringPadded . BS.pack)
-        $ go tree
+    (ch, s) = Bi.bimap BLU.fromString (toByteStringWithPadding . BS.pack) $ go tree
     l = BL.pack
         [fromIntegral $ structLen `div` (256 ^ i) `mod` 256 | i <- [0..3]]
     structLen = (2 * countNodes tree + 1) `ceilDiv` 8
@@ -136,50 +128,38 @@ encodeTree tree = BL.append ch
 
 -- | Recreates the Huffman Tree from data and structure.
 decodeTree :: ([Char], BitString) -> Maybe Tree
-decodeTree = fst <.> go
+decodeTree x = fst <$> go x
   where
     go :: ([Char], BitString) -> Maybe (Tree, ([Char], BitString))
-    go (d:ds, bs) = do
-        (b, rest)     <- BS.uncons bs
-        if b == 0
-        then return (Leaf d, (ds, rest))
-        else do
-            (left, remL)  <- go (d:ds, rest)
+    go (d:ds, b:::bs)
+        | b == 0 = Just (Leaf d, (ds, bs))
+        | otherwise = do
+            (left, remL)  <- go (d:ds, bs)
             (right, remR) <- go remL
             return (Node left right, remR)
     go _ = Nothing
 
--- | \(\mathcal{O}(n \cdot \log n)\) Encodes given 'Srting' using Huffman
+-- | \(\mathcal{O}(n \cdot \log n)\) Encodes given 'String' using Huffman
 -- code. Returns the encoded message prepended with encoded Huffman Tree.
 encode :: String -> ByteString
-encode str = BL.append encTree enc
+encode str = encTree <> enc
   where
     (tree, table) = prepareForEncoding str
     enc = encodeString table str
     encTree = encodeTree tree
 
-splitByteString :: ByteString -> Maybe (ByteString, ByteString)
-splitByteString = go BL.empty
-  where
-    go :: ByteString -> ByteString -> Maybe (ByteString, ByteString)
-    go pref rem = do
-        (h, t) <- BL.uncons rem
-        if   h == 0
-        then return (pref, t)
-        else go (h `BL.cons` pref) t
-
 -- | \(\mathcal{O}(n)\) Decodes a 'ByteString' into the original message.
 -- Returns 'Nothing' in case of failure.
 decode :: ByteString -> Maybe String
-decode bl = do
-    (d, t) <- Bi.first (BLU.toString . BL.reverse) <$> splitByteString bl
-    let (l, t2)   = Bi.first getSLen $ BL.splitAt 4 t
-    let (s, text) = Bi.first fromByteStringPadded $ BL.splitAt (l + 1) t2
-    tree <- decodeTree . (d,) =<< s
-    decodeString tree text
+decode bl
+    | BL.null r = Nothing
+    | otherwise = s >>= decodeTree . (d,) >>= flip decodeString text
+  where
+    (d, r)    = Bi.first BLU.toString $ BL.break (==0) bl
+    (l, t)    = Bi.first getSLen $ BL.splitAt 4 $ BL.tail r
+    (s, text) = Bi.first fromByteStringWithPadding $ BL.splitAt (l + 1) t
 
 getSLen :: ByteString -> Int64
 getSLen = foldr ( (\x y -> y * 256 + x)
                 . (\x -> fromIntegral x :: Int64)
                 ) 0 . BL.unpack
-
